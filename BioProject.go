@@ -1,10 +1,10 @@
 package main
 
 import (
-"BioProject/cell"
-"BioProject/BioPictures"
-"math"
-//"fmt"
+	"BioProject/BioPictures"
+	"BioProject/cell"
+	"math"
+	//"fmt"
 )
 
 //This is the holder for all the info each block has
@@ -26,7 +26,7 @@ type Direction struct {
 	Y int
 }
 
-var UPDIR Direction = Direction{0, -1}  //We assume that the orientation has 0,0 at the top left and we progress to WIDTH,HEIGHT
+var UPDIR Direction = Direction{0, -1} //We assume that the orientation has 0,0 at the top left and we progress to WIDTH,HEIGHT
 var DOWNDIR Direction = Direction{0, 1}
 var LEFTDIR Direction = Direction{-1, 0}
 var RIGHTDIR Direction = Direction{1, 0}
@@ -39,17 +39,18 @@ var DMAP = map[int]Direction{
 
 const (
 	HEIGHT = 20 //Size of grid
-	WIDTH = 20
+	WIDTH  = 20
 
-	FENCES = true
-	LUREEFFECT = false
-	STAYSTILL = true
+	FENCES      = true
+	FENCELAYOUT = 1
+	LUREEFFECT  = false
+	STAYSTILL   = true
 
 	UNIMPAIRED = 4 //Movement
-	IMPAIRED = 1
-	LURESCALE = 2
+	IMPAIRED   = 1
+	LURESCALE  = 2
 
-	TIMESTEPS = 20
+	TIMESTEPS  = 20
 	OUTPUTFREQ = 1
 
 	INITJS = 9 //The initail values for each square
@@ -60,22 +61,23 @@ const (
 	INITAV = 0
 
 	JUVENILLETRANSFER = .06
-	ADULTTRANSFER = .06
+	ADULTTRANSFER     = .06
 
 	VACCINATION = .828
 
 	JUVENILLEDEATH = .02
-	ADULTDEATH = .01
+	ADULTDEATH     = .01
 
 	JUVENILLEREPO = 3
-	ADULTREPO = 4
+	ADULTREPO     = 4
 )
 
-//Returns 
+//Returns
 //the neighbor is fenced in or not
 //is it in the grid
 //Does it and the neighbor are both inside or both outside the fence
 var count int
+
 func checkNeighbor(x int, y int, info [][]cell.Cell, d Direction) (bool, bool, bool) {
 	w := d.Y
 	z := d.X
@@ -83,7 +85,7 @@ func checkNeighbor(x int, y int, info [][]cell.Cell, d Direction) (bool, bool, b
 	var answer bool
 	var grid bool
 	local := info[x][y].Inside
-	if (x+z < WIDTH && y+w < HEIGHT && x+z >= 0 && y+w >= 0) { //check if inside the grid
+	if x+z < WIDTH && y+w < HEIGHT && x+z >= 0 && y+w >= 0 { //check if inside the grid
 		answer = info[x+z][y+w].Inside
 		grid = true
 	} else {
@@ -117,7 +119,6 @@ type Neighborhood struct {
 	rates []float64
 }
 
-
 //Give the movement data for the desired cell
 func getNeighborhood(x int, y int, info [][]cell.Cell) Neighborhood {
 	grid := make([]bool, 4)
@@ -131,7 +132,6 @@ func getNeighborhood(x int, y int, info [][]cell.Cell) Neighborhood {
 	var stay float64
 
 	localcity := info[x][y].City //Is the center square a city
-
 
 	for j, direction := range DMAP {
 		//Go through each direction looking at that neighbor (j is index, direction is associate direction)
@@ -164,7 +164,7 @@ func getNeighborhood(x int, y int, info [][]cell.Cell) Neighborhood {
 		} else { //No lure then all directions have the same want
 			want = 1
 		}
-		transistion[j] = transistion[j]*float64(want*ability) //This is the score for each direction
+		transistion[j] = transistion[j] * float64(want*ability) //This is the score for each direction
 	}
 	//Scale the scores for each direction
 	var sum float64
@@ -186,33 +186,31 @@ func getNeighborhood(x int, y int, info [][]cell.Cell) Neighborhood {
 			ability = 1
 		}
 	}
-	stay = stay*float64(want*ability)
+	stay = stay * float64(want*ability)
 	sum = stay
 	for i := 0; i < 4; i++ {
 		sum += transistion[i]
 	}
 	for i := 0; i < 4; i++ {
-		transistion[i] = transistion[i]/sum
+		transistion[i] = transistion[i] / sum
 	}
-	stay = stay/sum
+	stay = stay / sum
 	ratelist = []float64{transistion[0], transistion[1], transistion[2], transistion[3], stay}
 	answer = Neighborhood{ratelist}
 	return answer
 
 }
 
-
-
 func main() {
 	data := make([][]cell.Cell, WIDTH)
-	previousdata := make([][]cell.Cell,WIDTH)
+	previousdata := make([][]cell.Cell, WIDTH)
 	var i int
 	var j int
-	//Initialize data 
+	//Initialize data
 	for i := 0; i < WIDTH; i++ {
 		data[i] = make([]cell.Cell, HEIGHT)
 		previousdata[i] = make([]cell.Cell, HEIGHT)
-		for j:= 0; j < HEIGHT; j++ {
+		for j := 0; j < HEIGHT; j++ {
 			data[i][j] = cell.Cell{false, false, INITJS, INITJI, INITJV, INITAS, INITAI, INITAV}
 		}
 	}
@@ -258,168 +256,164 @@ func main() {
 	data[11][12].City = true
 	data[11][11].City = true
 
-
 	// Fence 1 Definition - 1 Tile Perimeter of City
 	// Modeled as (0,0) top left corner, x first, y second
+	if FENCELAYOUT == 1 {
 
-	data[3][13].Inside = true
-	data[3][12].Inside = true
-	data[3][11].Inside = true
-	data[3][10].Inside = true
+		data[3][13].Inside = true
+		data[3][12].Inside = true
+		data[3][11].Inside = true
+		data[3][10].Inside = true
 
-	data[4][13].Inside = true
-	data[4][12].Inside = true
-	data[4][11].Inside = true
-	data[4][10].Inside = true
+		data[4][13].Inside = true
+		data[4][12].Inside = true
+		data[4][11].Inside = true
+		data[4][10].Inside = true
 
-	data[5][13].Inside = true
-	data[5][12].Inside = true
-	data[5][11].Inside = true
-	data[5][10].Inside = true
+		data[5][13].Inside = true
+		data[5][12].Inside = true
+		data[5][11].Inside = true
+		data[5][10].Inside = true
 
-	data[6][13].Inside = true
-	data[6][12].Inside = true
-	data[6][11].Inside = true
-	data[6][10].Inside = true
-	data[6][9].Inside = true
-	data[6][8].Inside = true
-	data[6][7].Inside = true
-	data[6][6].Inside = true
+		data[6][13].Inside = true
+		data[6][12].Inside = true
+		data[6][11].Inside = true
+		data[6][10].Inside = true
+		data[6][9].Inside = true
+		data[6][8].Inside = true
+		data[6][7].Inside = true
+		data[6][6].Inside = true
 
-	data[7][13].Inside = true
-	data[7][12].Inside = true
-	data[7][11].Inside = true
-	data[7][10].Inside = true
-	data[7][9].Inside = true
-	data[7][8].Inside = true
-	data[7][7].Inside = true
-	data[7][6].Inside = true
+		data[7][13].Inside = true
+		data[7][12].Inside = true
+		data[7][11].Inside = true
+		data[7][10].Inside = true
+		data[7][9].Inside = true
+		data[7][8].Inside = true
+		data[7][7].Inside = true
+		data[7][6].Inside = true
 
-	data[8][13].Inside = true
-	data[8][12].Inside = true
-	data[8][11].Inside = true
-	data[8][10].Inside = true
-	data[8][9].Inside = true
-	data[8][8].Inside = true
-	data[8][7].Inside = true
-	data[8][6].Inside = true
+		data[8][13].Inside = true
+		data[8][12].Inside = true
+		data[8][11].Inside = true
+		data[8][10].Inside = true
+		data[8][9].Inside = true
+		data[8][8].Inside = true
+		data[8][7].Inside = true
+		data[8][6].Inside = true
 
-	data[9][13].Inside = true
-	data[9][12].Inside = true
-	data[9][11].Inside = true
-	data[9][10].Inside = true
-	data[9][9].Inside = true
-	data[9][8].Inside = true
-	data[9][7].Inside = true
-	data[9][6].Inside = true
+		data[9][13].Inside = true
+		data[9][12].Inside = true
+		data[9][11].Inside = true
+		data[9][10].Inside = true
+		data[9][9].Inside = true
+		data[9][8].Inside = true
+		data[9][7].Inside = true
+		data[9][6].Inside = true
 
-	data[10][13].Inside = true
-	data[10][12].Inside = true
-	data[10][11].Inside = true
-	data[10][10].Inside = true
-	data[10][9].Inside = true
-	data[10][8].Inside = true
-	data[10][7].Inside = true
-	data[10][6].Inside = true
+		data[10][13].Inside = true
+		data[10][12].Inside = true
+		data[10][11].Inside = true
+		data[10][10].Inside = true
+		data[10][9].Inside = true
+		data[10][8].Inside = true
+		data[10][7].Inside = true
+		data[10][6].Inside = true
 
-	data[11][13].Inside = true
-	data[11][12].Inside = true
-	data[11][11].Inside = true
-	data[11][10].Inside = true
+		data[11][13].Inside = true
+		data[11][12].Inside = true
+		data[11][11].Inside = true
+		data[11][10].Inside = true
 
-	data[12][13].Inside = true
-	data[12][12].Inside = true
-	data[12][11].Inside = true
-	data[12][10].Inside = true
+		data[12][13].Inside = true
+		data[12][12].Inside = true
+		data[12][11].Inside = true
+		data[12][10].Inside = true
 
-	data[13][13].Inside = true
-	data[13][12].Inside = true
-	data[13][11].Inside = true
-	data[13][10].Inside = true
+		data[13][13].Inside = true
+		data[13][12].Inside = true
+		data[13][11].Inside = true
+		data[13][10].Inside = true
+	} else if FENCELAYOUT == 2 {
 
+		// Fence 2 Definition - 0 Tile Perimeter of City
+		// Modeled as (0,0) top left corner, x first, y second
 
-	// Fence 2 Definition - 0 Tile Perimeter of City
-	// Modeled as (0,0) top left corner, x first, y second
-	/*
+		data[4][12].Inside = true
+		data[4][11].Inside = true
+		data[5][12].Inside = true
+		data[5][11].Inside = true
+		data[6][12].Inside = true
+		data[6][11].Inside = true
 
+		data[7][12].Inside = true
+		data[7][11].Inside = true
+		data[7][10].Inside = true
+		data[7][9].Inside = true
+		data[7][8].Inside = true
+		data[7][7].Inside = true
 
-	data[4][12].Inside = true
-	data[4][11].Inside = true
-	data[5][12].Inside = true
-	data[5][11].Inside = true
-	data[6][12].Inside = true
-	data[6][11].Inside = true
+		data[8][12].Inside = true
+		data[8][11].Inside = true
+		data[8][10].Inside = true
+		data[8][9].Inside = true
+		data[8][8].Inside = true
+		data[8][7].Inside = true
 
-	data[7][12].Inside = true
-	data[7][11].Inside = true
-	data[7][10].Inside = true
-	data[7][9].Inside = true
-	data[7][8].Inside = true
-	data[7][7].Inside = true
+		data[9][12].Inside = true
+		data[9][11].Inside = true
+		data[10][12].Inside = true
+		data[10][11].Inside = true
+		data[11][12].Inside = true
+		data[11][11].Inside = true
+	} else {
 
-	data[8][12].Inside = true
-	data[8][11].Inside = true
-	data[8][10].Inside = true
-	data[8][9].Inside = true
-	data[8][8].Inside = true
-	data[8][7].Inside = true
+		// Fence 3 Definition - 0 Tile Perimeter of City
+		// Modeled as (0,0) top left corner, x first, y second
 
-	data[9][12].Inside = true
-	data[9][11].Inside = true
-	data[10][12].Inside = true
-	data[10][11].Inside = true
-	data[11][12].Inside = true
-	data[11][11].Inside = true
-	*/
+		data[3][12].Inside = true
+		data[3][10].Inside = true
 
-	// Fence 3 Definition - 0 Tile Perimeter of City
-	// Modeled as (0,0) top left corner, x first, y second
-	/*
+		data[4][13].Inside = true
+		data[4][11].Inside = true
 
+		data[5][12].Inside = true
+		data[5][10].Inside = true
 
-	data[3][12].Inside = true
-	data[3][10].Inside = true
+		data[6][13].Inside = true
+		data[6][11].Inside = true
+		data[6][9].Inside = true
+		data[6][7].Inside = true
 
-	data[4][13].Inside = true
-	data[4][11].Inside = true
+		data[7][12].Inside = true
+		data[7][10].Inside = true
+		data[7][8].Inside = true
+		data[7][6].Inside = true
 
-	data[5][12].Inside = true
-	data[5][10].Inside = true
+		data[8][13].Inside = true
+		data[8][11].Inside = true
+		data[8][9].Inside = true
+		data[8][7].Inside = true
 
-	data[6][13].Inside = true
-	data[6][11].Inside = true
-	data[6][9].Inside = true
-	data[6][7].Inside = true
+		data[9][12].Inside = true
+		data[9][10].Inside = true
+		data[9][8].Inside = true
+		data[9][6].Inside = true
 
-	data[7][12].Inside = true
-	data[7][10].Inside = true
-	data[7][8].Inside = true
-	data[7][6].Inside = true
+		data[10][13].Inside = true
+		data[10][11].Inside = true
+		data[10][9].Inside = true
+		data[10][7].Inside = true
 
-	data[8][13].Inside = true
-	data[8][11].Inside = true
-	data[8][9].Inside = true
-	data[8][7].Inside = true
+		data[11][12].Inside = true
+		data[11][10].Inside = true
 
-	data[9][12].Inside = true
-	data[9][10].Inside = true
-	data[9][8].Inside = true
-	data[9][6].Inside = true
+		data[12][13].Inside = true
+		data[12][11].Inside = true
 
-	data[10][13].Inside = true
-	data[10][11].Inside = true
-	data[10][9].Inside = true
-	data[10][7].Inside = true
-
-	data[11][12].Inside = true
-	data[11][10].Inside = true
-
-	data[12][13].Inside = true
-	data[12][11].Inside = true
-
-	data[13][12].Inside = true
-	data[13][10].Inside = true
-	*/
+		data[13][12].Inside = true
+		data[13][10].Inside = true
+	}
 
 	//Populate the movement matrix
 	//the neighborhood data structure contains the movement values to the neighbors
@@ -434,10 +428,9 @@ func main() {
 	//Run the expiriment
 	for year := 0; year < TIMESTEPS; year++ {
 		//Output timestep?
-		if year % OUTPUTFREQ == 0 || year == (TIMESTEPS-1) {
+		if year%OUTPUTFREQ == 0 || year == (TIMESTEPS-1) {
 			BioPictures.Pics(data, year)
 		}
-
 
 		//Step 1 Juvenille Dispersal
 		// This block copies old data to previous data
@@ -448,7 +441,7 @@ func main() {
 		}
 
 		//Set all juvenille for next timestep to zero
-		for i = 0; i <WIDTH; i++ {
+		for i = 0; i < WIDTH; i++ {
 			for j = 0; j < WIDTH; j++ {
 				data[i][j] = cell.Cell{previousdata[i][j].Inside, previousdata[i][j].City, 0, 0, 0, previousdata[i][j].AS, previousdata[i][j].AI, previousdata[i][j].AV}
 			}
@@ -459,16 +452,16 @@ func main() {
 				for index, direction := range DMAP {
 					_, valid, _ := checkNeighbor(i, j, previousdata, direction)
 					if valid {
-						data[i+direction.X][j+direction.Y].JS += previousdata[i][j].JS*movement[i][j].rates[index]
-						data[i+direction.X][j+direction.Y].JI += previousdata[i][j].JI*movement[i][j].rates[index]
-						data[i+direction.X][j+direction.Y].JV += previousdata[i][j].JV*movement[i][j].rates[index]
+						data[i+direction.X][j+direction.Y].JS += previousdata[i][j].JS * movement[i][j].rates[index]
+						data[i+direction.X][j+direction.Y].JI += previousdata[i][j].JI * movement[i][j].rates[index]
+						data[i+direction.X][j+direction.Y].JV += previousdata[i][j].JV * movement[i][j].rates[index]
 					}
 
 				}
 				//Stay (note this adds 0 if staystill is false)
-				data[i][j].JS += previousdata[i][j].JS*movement[i][j].rates[4]
-				data[i][j].JI += previousdata[i][j].JS*movement[i][j].rates[4]
-				data[i][j].JV += previousdata[i][j].JS*movement[i][j].rates[4]
+				data[i][j].JS += previousdata[i][j].JS * movement[i][j].rates[4]
+				data[i][j].JI += previousdata[i][j].JS * movement[i][j].rates[4]
+				data[i][j].JV += previousdata[i][j].JS * movement[i][j].rates[4]
 			}
 		}
 
@@ -481,10 +474,10 @@ func main() {
 
 		for i = 0; i < WIDTH; i++ {
 			for j = 0; j < HEIGHT; j++ {
-				data[i][j].JS = previousdata[i][j].JS*math.Exp(-JUVENILLETRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI))
-				data[i][j].JI = previousdata[i][j].JS*(1-math.Exp(-JUVENILLETRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI)))
-				data[i][j].AS = previousdata[i][j].AS*math.Exp(-ADULTTRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI))
-				data[i][j].AI = previousdata[i][j].AS*(1-math.Exp(-ADULTTRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI)))
+				data[i][j].JS = previousdata[i][j].JS * math.Exp(-JUVENILLETRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI))
+				data[i][j].JI = previousdata[i][j].JS * (1 - math.Exp(-JUVENILLETRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI)))
+				data[i][j].AS = previousdata[i][j].AS * math.Exp(-ADULTTRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI))
+				data[i][j].AI = previousdata[i][j].AS * (1 - math.Exp(-ADULTTRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI)))
 			}
 		}
 
@@ -498,13 +491,13 @@ func main() {
 		for i = 0; i < WIDTH; i++ {
 			for j = 0; j < HEIGHT; j++ {
 				if data[i][j].Inside || data[i][j].City {
-					data[i][j].JS = previousdata[i][j].JS*(1-VACCINATION)
-					data[i][j].JI = previousdata[i][j].JI*(1-VACCINATION)
-					data[i][j].AS = previousdata[i][j].AS*(1-VACCINATION)
-					data[i][j].AI = previousdata[i][j].AI*(1-VACCINATION)
+					data[i][j].JS = previousdata[i][j].JS * (1 - VACCINATION)
+					data[i][j].JI = previousdata[i][j].JI * (1 - VACCINATION)
+					data[i][j].AS = previousdata[i][j].AS * (1 - VACCINATION)
+					data[i][j].AI = previousdata[i][j].AI * (1 - VACCINATION)
 
-					data[i][j].JV = (previousdata[i][j].JI+previousdata[i][j].JS)*VACCINATION+previousdata[i][j].JV
-					data[i][j].AV = (previousdata[i][j].AI+previousdata[i][j].AS)*VACCINATION+previousdata[i][j].AV
+					data[i][j].JV = (previousdata[i][j].JI+previousdata[i][j].JS)*VACCINATION + previousdata[i][j].JV
+					data[i][j].AV = (previousdata[i][j].AI+previousdata[i][j].AS)*VACCINATION + previousdata[i][j].AV
 				}
 			}
 		}
@@ -519,13 +512,13 @@ func main() {
 		var sum float64 = 0
 		for i = 0; i < WIDTH; i++ {
 			for j = 0; j < HEIGHT; j++ {
-				sum = previousdata[i][j].JS+previousdata[i][j].JI+previousdata[i][j].JV+previousdata[i][j].AS+previousdata[i][j].AI+previousdata[i][j].AV
-				data[i][j].JS = previousdata[i][j].JS*math.Exp(-JUVENILLEDEATH*sum)
-				data[i][j].JI = previousdata[i][j].JI*math.Exp(-JUVENILLEDEATH*sum)
-				data[i][j].JV = previousdata[i][j].JV*math.Exp(-JUVENILLEDEATH*sum)
-				data[i][j].AS = previousdata[i][j].AS*math.Exp(-ADULTDEATH*sum)
-				data[i][j].AI = previousdata[i][j].AI*math.Exp(-ADULTDEATH*sum)
-				data[i][j].AV = previousdata[i][j].AV*math.Exp(-ADULTDEATH*sum)
+				sum = previousdata[i][j].JS + previousdata[i][j].JI + previousdata[i][j].JV + previousdata[i][j].AS + previousdata[i][j].AI + previousdata[i][j].AV
+				data[i][j].JS = previousdata[i][j].JS * math.Exp(-JUVENILLEDEATH*sum)
+				data[i][j].JI = previousdata[i][j].JI * math.Exp(-JUVENILLEDEATH*sum)
+				data[i][j].JV = previousdata[i][j].JV * math.Exp(-JUVENILLEDEATH*sum)
+				data[i][j].AS = previousdata[i][j].AS * math.Exp(-ADULTDEATH*sum)
+				data[i][j].AI = previousdata[i][j].AI * math.Exp(-ADULTDEATH*sum)
+				data[i][j].AV = previousdata[i][j].AV * math.Exp(-ADULTDEATH*sum)
 			}
 		}
 
@@ -538,15 +531,14 @@ func main() {
 
 		for i = 0; i < WIDTH; i++ {
 			for j = 0; j < HEIGHT; j++ {
-				data[i][j].JS = JUVENILLEREPO*(previousdata[i][j].JS+previousdata[i][j].JV)+ADULTREPO*(previousdata[i][j].AS+previousdata[i][j].AV)
+				data[i][j].JS = JUVENILLEREPO*(previousdata[i][j].JS+previousdata[i][j].JV) + ADULTREPO*(previousdata[i][j].AS+previousdata[i][j].AV)
 				data[i][j].JI = 0
 				data[i][j].JV = 0
-				data[i][j].AS = previousdata[i][j].JS+previousdata[i][j].AS
-				data[i][j].AI = previousdata[i][j].JI+previousdata[i][j].AI
-				data[i][j].AV = previousdata[i][j].JV+previousdata[i][j].AV
+				data[i][j].AS = previousdata[i][j].JS + previousdata[i][j].AS
+				data[i][j].AI = previousdata[i][j].JI + previousdata[i][j].AI
+				data[i][j].AV = previousdata[i][j].JV + previousdata[i][j].AV
 			}
 		}
-
 
 		//Step 6 Disease Again
 		for i = 0; i < WIDTH; i++ {
@@ -557,10 +549,10 @@ func main() {
 
 		for i = 0; i < WIDTH; i++ {
 			for j = 0; j < HEIGHT; j++ {
-				data[i][j].JS = previousdata[i][j].JS*math.Exp(-JUVENILLETRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI))
-				data[i][j].JI = previousdata[i][j].JS*(1-math.Exp(-JUVENILLETRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI)))
-				data[i][j].AS = previousdata[i][j].AS*math.Exp(-ADULTTRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI))
-				data[i][j].AI = previousdata[i][j].AS*(1-math.Exp(-ADULTTRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI)))
+				data[i][j].JS = previousdata[i][j].JS * math.Exp(-JUVENILLETRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI))
+				data[i][j].JI = previousdata[i][j].JS * (1 - math.Exp(-JUVENILLETRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI)))
+				data[i][j].AS = previousdata[i][j].AS * math.Exp(-ADULTTRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI))
+				data[i][j].AI = previousdata[i][j].AS * (1 - math.Exp(-ADULTTRANSFER*(previousdata[i][j].JI+previousdata[i][j].AI)))
 			}
 		}
 
@@ -573,13 +565,13 @@ func main() {
 
 		for i = 0; i < WIDTH; i++ {
 			for j = 0; j < HEIGHT; j++ {
-				sum = previousdata[i][j].JS+previousdata[i][j].JI+previousdata[i][j].JV+previousdata[i][j].AS+previousdata[i][j].AI+previousdata[i][j].AV
-				data[i][j].JS = previousdata[i][j].JS*math.Exp(-JUVENILLEDEATH*sum)
-				data[i][j].JI = previousdata[i][j].JI*math.Exp(-JUVENILLEDEATH*sum)
-				data[i][j].JV = previousdata[i][j].JV*math.Exp(-JUVENILLEDEATH*sum)
-				data[i][j].AS = previousdata[i][j].AS*math.Exp(-ADULTDEATH*sum)
-				data[i][j].AI = previousdata[i][j].AI*math.Exp(-ADULTDEATH*sum)
-				data[i][j].AV = previousdata[i][j].AV*math.Exp(-ADULTDEATH*sum)
+				sum = previousdata[i][j].JS + previousdata[i][j].JI + previousdata[i][j].JV + previousdata[i][j].AS + previousdata[i][j].AI + previousdata[i][j].AV
+				data[i][j].JS = previousdata[i][j].JS * math.Exp(-JUVENILLEDEATH*sum)
+				data[i][j].JI = previousdata[i][j].JI * math.Exp(-JUVENILLEDEATH*sum)
+				data[i][j].JV = previousdata[i][j].JV * math.Exp(-JUVENILLEDEATH*sum)
+				data[i][j].AS = previousdata[i][j].AS * math.Exp(-ADULTDEATH*sum)
+				data[i][j].AI = previousdata[i][j].AI * math.Exp(-ADULTDEATH*sum)
+				data[i][j].AV = previousdata[i][j].AV * math.Exp(-ADULTDEATH*sum)
 			}
 		}
 	}
